@@ -52,6 +52,8 @@ class QuestionController extends AbstractController
             $comment->setRating(0);
             $comment->setQuestion($question);
 
+            $question->setNbResponse($question->getNbResponse() + 1);
+
             $em->persist($comment);
             $em->flush();
 
