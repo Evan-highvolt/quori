@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Comment;
 use App\Entity\Question;
+use App\Form\CommentType;
 use App\Form\QuestionType;
 use DateTimeZone;
 use Doctrine\ORM\EntityManagerInterface;
@@ -39,20 +41,26 @@ class QuestionController extends AbstractController
     }
 
     #[Route('/question/{id}', name: 'show_question')]
-    public function show(Request $request, string $id) {
+    public function show(Request $request, Question $question, EntityManagerInterface $em) {
         
-        $question =  [
-            'title'=> 'je suis une question',
-            'content'=> 'Lorem, ipsum dolor sit amet consectetur adipisicing elit. Officiis, quis odit! Odit earum quisquam ea animi in qui sit quia. Consequatur illum voluptas quidem, sed et                        numquam neque aspernatur quibusdam.',
-            'rating'=> 0,
-            'author' => [
-                'name'=> 'Laure Joe',
-                'avatar' => 'https://randomuser.me/api/portraits/women/79.jpg'
-            ],
-            'nbResponse'=> 5
-        ];
+        $comment =new Comment();
+        $commentForm = $this->createForm(CommentType::class, $comment);
+        $commentForm->handleRequest($request);
+
+        if ($commentForm->isSubmitted() && $commentForm->isValid()) {
+            $comment->setCreatedAt(new \DateTimeImmutable());
+            $comment->setRating(0);
+            $comment->setQuestion($question);
+
+            $em->persist($comment);
+            $em->flush();
+
+            $this->addFlash('success', 'votre reponse a bien ete publiee');
+
+            return $this->redirect($request->getUri());
+        }
         
-        return $this->render('question/show.html.twig', ['question'  => $question]);
+        return $this->render('question/show.html.twig', ['question'  => $question, 'form' => $commentForm->createView()]);
     }
 
 
