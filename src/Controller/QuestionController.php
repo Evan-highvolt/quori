@@ -65,5 +65,16 @@ class QuestionController extends AbstractController
         return $this->render('question/show.html.twig', ['question'  => $question, 'form' => $commentForm->createView()]);
     }
 
+    #[Route('/question/rating/{id}/{score}', name: 'question_rating')]
+    public function rate(Request $request, Question $question, int $score, EntityManagerInterface $em) {
+        
+        $question->setRating($question->getRating() + $score);
+        $em->flush();
+        $referer = $request->server->get('HTTP_REFERER');
+        return $referer ? $this->redirect($referer) : $this->redirect('home');
+    }
+
+    
+
 
 } 
